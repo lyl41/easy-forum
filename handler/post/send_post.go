@@ -13,8 +13,8 @@ func DealSendPost(userId int, title, content string) (err error) {
 			fmt.Println("handler层：DealSendPost err:", err)
 		}
 	}()
-	if _, err = mysql.FindPostByUserIdAndTitle(userId, title); err != nil {
-		err = errors.Wrap(err, "您先前已经发布了一篇相同标题的帖子")
+	if info, _ := mysql.FindPostByUserIdAndTitle(userId, title); info != nil {
+		err = errors.New("您先前已经发布了一篇相同标题的帖子")
 		return
 	}
 	if err = mysql.AddNewPost(userId, title, content); err != nil {

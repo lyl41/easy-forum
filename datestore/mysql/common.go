@@ -18,4 +18,5 @@ func init() {
 	} else {
 		fmt.Println("mysql forum database Open success,", db)
 	}
+	db.Debug()
 }
