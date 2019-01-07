@@ -10,12 +10,12 @@ import (
 
 func DealLoginByPhone(phone, verifyCode string) (replyToken string, err error) {
 	//TODO
-	if verifyCode == "1111" {
-		return "lyl_token", nil
-	} else {
-		err = errors.New("验证码错误")
-		return
-	}
+	//if verifyCode == "1111" {
+	//	return "lyl_token", nil
+	//} else {
+	//	err = errors.New("验证码错误")
+	//	return
+	//}
 	smsCode, err := redis.GetSmsCode(phone)
 	if err != nil {
 		return
