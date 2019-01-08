@@ -14,5 +14,5 @@ func TestFirstOrCreateUser(t *testing.T) {
 	//paramsNeed := []string{"phone", "avatar", "name"}
 	err := FirstOrCreateUserByPhone(data.Phone, data)
 	fmt.Println(err)
-	fmt.Printf("%+v",data)
+	fmt.Printf("%+v", data)
 }

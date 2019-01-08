@@ -9,7 +9,7 @@ import (
 ///var/folders/bm/5pxrd6855nj81734_7dx3jn80000gn/T/go-build273618223/b001/exe/main -t users -db root:1234567890@tcp(localhost:3306)/forum
 
 type Users struct {
-	ID          int64     `sql:"column:id" json:"id,omitempty"`                     //
+	ID          int64     `sql:"primary_key;column:id" json:"id,omitempty"`         //
 	Name        string    `sql:"column:name" json:"name,omitempty"`                 //昵称
 	Avatar      string    `sql:"column:avatar" json:"avatar,omitempty"`             //头像
 	Level       int64     `sql:"column:level" json:"level,omitempty"`               //用户经验等级
