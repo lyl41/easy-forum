@@ -20,3 +20,7 @@ func init() {
 	}
 	db.Debug()
 }
+
+func GetDB() (*gorm.DB) {
+	return db
+}

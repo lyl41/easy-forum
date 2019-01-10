@@ -13,7 +13,7 @@ func DealSendPost(userId int, title, content string) (err error) {
 			fmt.Println("handler层：DealSendPost err:", err)
 		}
 	}()
-	if info, _ := mysql.FindPostByUserIdAndTitle(userId, title); info != nil {
+	if info, _ := mysql.FindPostByUserIdAndTitle(mysql.GetDB(), userId, title); info != nil && info.ID > 0 { //找到记录的话，ID应该是 > 0
 		err = errors.New("您先前已经发布了一篇相同标题的帖子")
 		return
 	}

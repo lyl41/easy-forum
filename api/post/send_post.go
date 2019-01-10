@@ -46,13 +46,23 @@ func checkSendPost(w http.ResponseWriter, r *http.Request) (info *SendPostParams
 func (p Post) SendPost(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("-----new request-----")
 	var err error
+	reply := new(HttpReply)
 	defer func() {
 		if err != nil {
 			fmt.Println("api层SendPost err:", err)
 			w.Write([]byte(err.Error()))
 		} else {
+			reply.Msg = "请求成功"
+			ret, err := json.Marshal(reply)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
+				fmt.Println("json marshal fail.")
+				return
+			}
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("request success，请求接口成功！"))
+			fmt.Println(string(ret))
+			w.Write(ret)
 		}
 		fmt.Println("-----request end-----")
 	}()
@@ -61,13 +71,11 @@ func (p Post) SendPost(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	var token string
-	//fmt.Println(r.Header)
-	if val, found := r.Header["Token"]; !found || len(val) == 0 {
+	//取出token
+	token, err := getTokenFromHeader(r)
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
-	} else {
-		token = val[0]
 	}
 	//根据token获取userid，根据userid操作数据库
 	userId, err := verify.VerifyToken(token)
@@ -80,4 +88,14 @@ func (p Post) SendPost(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+func getTokenFromHeader(r *http.Request)(token string, err error)  {
+	if val, found := r.Header["Token"]; !found || len(val) == 0 {
+		err = errors.New("未找到token")
+		return
+	} else {
+		token = val[0]
+	}
+	return
 }
