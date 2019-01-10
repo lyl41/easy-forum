@@ -41,14 +41,14 @@ func FindPostByUserIdAndTitle(tx *gorm.DB, userId int, title string) (data *Post
 	return
 }
 
-func FindPostByID(tx *gorm.DB, postId int) (data *Post, err error) {
+func FindPostByID(tx *gorm.DB, postId int64) (data *Post, err error) {
 	where := &Post{
 		ID: int64(postId),
 	}
 	data = new(Post)
 	//加行锁
 	if err = tx.Set("gorm:query_option", " FOR UPDATE ").Where(where).First(data).Error; err != nil {
-		if err == gorm.ErrRecordNotFound { //处理了未找到的情况，err = nil
+		if err == gorm.ErrRecordNotFound { //处理了未找到的情况，err = nil, 但是data.ID==0
 			err = nil
 		}
 		return
@@ -57,13 +57,25 @@ func FindPostByID(tx *gorm.DB, postId int) (data *Post, err error) {
 	return
 }
 
-func AddNewPost(userId int, title, content string) (err error) {
+func AddNewPostRecord(userId int64, title, content string) (err error) {
 	data := &Post{
 		UserID: int64(userId),
 		Title:  title,
 		Detail: content,
+		ReplyCount: 1,
 	}
 	if err = db.Create(data).Error; err != nil {
+		return
+	}
+	return
+}
+
+func UpdatePostReplyCount(db *gorm.DB, postId, floor int64) (err error){
+	data := &Post{
+		ReplyCount: int64(floor),
+	}
+	if err = db.Table(data.TableName()).Where("id=?", postId).Updates(data).Error; err != nil {
+		err = errors.Wrap(err, "更新数据库reply_count失败")
 		return
 	}
 	return

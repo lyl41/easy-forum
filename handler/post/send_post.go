@@ -17,7 +17,7 @@ func DealSendPost(userId int, title, content string) (err error) {
 		err = errors.New("您先前已经发布了一篇相同标题的帖子")
 		return
 	}
-	if err = mysql.AddNewPost(userId, title, content); err != nil {
+	if err = mysql.AddNewPostRecord(int64(userId), title, content); err != nil {
 		err = errors.Wrap(err, "发布帖子失败，请稍后重试")
 		return
 	}
