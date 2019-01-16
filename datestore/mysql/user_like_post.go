@@ -19,6 +19,11 @@ type UserLikePost struct {
 
 }
 
+const (
+	UserLikePostStatus       = 1
+	UserCancelLikePostStatus = 2
+)
+
 func (UserLikePost) TableName() string {
 	return "user_like_post"
 }
@@ -27,8 +32,8 @@ func AddNewLikeRecord(tx *gorm.DB, userId, postId int64) (err error) {
 	data := new(UserLikePost)
 
 	where := &UserLikePost{
-		UserID:userId,
-		PostID:postId,
+		UserID: userId,
+		PostID: postId,
 	}
 	if err = tx.Set("gorm:query_option", " FOR UPDATE ").Where(where).First(data).Error; err != nil && err != gorm.ErrRecordNotFound {
 		err = errors.Wrap(err, "点赞数据库查找错误")
@@ -36,20 +41,23 @@ func AddNewLikeRecord(tx *gorm.DB, userId, postId int64) (err error) {
 	}
 	//err == gorm.ErrRecordNotFound || err == nil
 	if err == gorm.ErrRecordNotFound {
+		data.UserID = userId
+		data.PostID = postId
+		data.Like = UserLikePostStatus
 		err = tx.Create(data).Error
 		if err != nil {
 			err = errors.Wrap(err, "创建点赞记录失败")
 			return
 		}
 	} else {
-		if data.Like == 1 { //TODO
+		if data.Like == UserLikePostStatus {
 			err = errors.Wrap(errors.New("重复点赞"), "您已经点过赞啦")
 			return
 		}
 		data.UserID = userId
 		data.PostID = postId
-		data.Like = 1
-		err = tx.Table(data.TableName()).Where(where).Updates(data).Error
+		data.Like = UserLikePostStatus
+		err = tx.Model(data).Where(where).Updates(data).Error
 		if err != nil {
 			err = errors.Wrap(err, "更新点赞记录失败")
 			return
@@ -57,6 +65,40 @@ func AddNewLikeRecord(tx *gorm.DB, userId, postId int64) (err error) {
 	}
 	return
 }
-func UpdateLikeRecord(tx *gorm.DB, userId, postId int64) (err error) {
+func CancelLikeRecord(tx *gorm.DB, userId, postId int64) (err error) {
+	data := new(UserLikePost)
+
+	where := &UserLikePost{
+		UserID: userId,
+		PostID: postId,
+	}
+	if err = tx.Set("gorm:query_option", " FOR UPDATE ").Where(where).First(data).Error; err != nil && err != gorm.ErrRecordNotFound {
+		err = errors.Wrap(err, "点赞数据库查找错误")
+		return
+	}
+	//err == gorm.ErrRecordNotFound || err == nil
+	if err == gorm.ErrRecordNotFound {
+		data.UserID = userId
+		data.PostID = postId
+		data.Like = UserCancelLikePostStatus
+		err = tx.Create(data).Error
+		if err != nil {
+			err = errors.Wrap(err, "创建取消点赞记录失败")
+			return
+		}
+	} else {
+		if data.Like == UserCancelLikePostStatus { //TODO
+			err = errors.Wrap(errors.New("重复取消点赞"), "您已经取消点赞啦")
+			return
+		}
+		data.UserID = userId
+		data.PostID = postId
+		data.Like = UserCancelLikePostStatus
+		err = tx.Model(data).Where(where).Updates(data).Error
+		if err != nil {
+			err = errors.Wrap(err, "更新取消点赞记录失败")
+			return
+		}
+	}
 	return
 }

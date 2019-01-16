@@ -74,7 +74,7 @@ func UpdatePostReplyCount(db *gorm.DB, postId, floor int64) (err error){
 	data := &Post{
 		ReplyCount: int64(floor),
 	}
-	if err = db.Table(data.TableName()).Where("id=?", postId).Updates(data).Error; err != nil {
+	if err = db.Model(data).Where("id=?", postId).Updates(data).Error; err != nil {
 		err = errors.Wrap(err, "更新数据库reply_count失败")
 		return
 	}
@@ -85,7 +85,7 @@ func UpdatePostLikeCount(db *gorm.DB, postId, like int64) (err error){
 	data := &Post{
 		Like: int64(like),
 	}
-	if err = db.Table(data.TableName()).Where("id=?", postId).Updates(data).Error; err != nil {
+	if err = db.Model(data).Where("id=?", postId).Updates(data).Error; err != nil {
 		err = errors.Wrap(err, "更新数据库reply_count失败")
 		return
 	}

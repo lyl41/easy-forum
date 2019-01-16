@@ -28,7 +28,7 @@ func DealCancelLikePost(userId, postId int) (err error) {
 		err = errors.Wrap(errors.New("postId not found"), "该帖子不存在或已经删除")
 		return
 	}
-	if err = mysql.UpdateLikeRecord(tx, int64(userId), int64(postId)); err != nil {
+	if err = mysql.CancelLikeRecord(tx, int64(userId), int64(postId)); err != nil {
 		return
 	}
 	likeCount := postInfo.Like - 1

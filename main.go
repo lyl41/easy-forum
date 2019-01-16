@@ -18,5 +18,6 @@ func main() {
 	http.HandleFunc("/reply", c.ReplyPost)
 	http.HandleFunc("/login-by-phone", c.LoginByPhone)
 	http.HandleFunc("/like-post", c.LikePost)
+	http.HandleFunc("/cancel-like-post", c.CancelLikePost)
 	log.Fatal(http.ListenAndServe(":9001", nil))
 }
