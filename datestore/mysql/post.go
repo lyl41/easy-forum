@@ -23,9 +23,9 @@ func (Post) TableName() string {
 }
 
 //根据userid或者title找获取帖子数据，title可以为空, 如果未找到数据，err为nil，同时data中 id == 0
-func FindPostByUserIdAndTitle(tx *gorm.DB, userId int, title string) (data *Post, err error) {
+func FindPostByUserIdAndTitle(tx *gorm.DB, userId int64, title string) (data *Post, err error) {
 	where := &Post{
-		UserID: int64(userId),
+		UserID: userId,
 	}
 	if title != "" {
 		where.Title = title

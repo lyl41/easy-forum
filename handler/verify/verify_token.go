@@ -6,8 +6,8 @@ import (
 )
 
 //验证接口token，返回userid
-func VerifyToken(token string) (userId int, err error) {
-	sess, err := redis.GetTokenValue(token)
+func VerifyToken(token string) (sess *redis.SessionInfo, err error) {
+	sess, err = redis.GetTokenValue(token)
 	if err != nil {
 		err = errors.Wrap(err, "verify token failed.")
 		return
@@ -16,6 +16,5 @@ func VerifyToken(token string) (userId int, err error) {
 		err = errors.New("登录信息过期，请重新登录^ ^")
 		return
 	}
-	userId = int(sess.UserId)
 	return
 }

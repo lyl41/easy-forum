@@ -1,12 +1,12 @@
 package post
 
 import (
+	"easy-forum/auth"
+	"easy-forum/common"
 	"easy-forum/handler/post"
-	"easy-forum/handler/verify"
-	"encoding/json"
 	"fmt"
+	"github.com/labstack/echo"
 	"github.com/pkg/errors"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -15,74 +15,42 @@ type ReplyPostParams struct {
 	Content string `json:"content"`
 }
 
-func checkReplyPost(w http.ResponseWriter, r *http.Request) (info *ReplyPostParams, err error) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte(fmt.Sprint("不支持%s方法", r.Method)))
-		err = errors.Errorf("不支持%s方法", r.Method)
-		return
-	}
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	info = new(ReplyPostParams)
-	if err = json.Unmarshal(body, info); err != nil {
-		err = errors.Wrap(err, "json解析错误")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("body中不是一个合法的json"))
-		return
-	}
+func checkReplyPost(info *ReplyPostParams) (err error) {
 	if info.PostId <= 0 || info.Content == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("body中参数非法"))
 		err = errors.New("body中参数非法")
 		return
 	}
 	return
 }
 
-func (p Post) ReplyPost(w http.ResponseWriter, r *http.Request) {
-	var err error
-	reply := new(HttpReply)
+func ReplyPost(c echo.Context) (err error) {
+	req := new(ReplyPostParams)
+	err = c.Bind(req)
+	if err != nil {
+		fmt.Println("bind err")
+		return err
+	}
+	data := new(struct{})
+	reply := common.StdReply{
+		Result:common.ResultFail,
+	}
 	defer func() {
 		if err != nil {
-			fmt.Println("api层ReplyPost err:", err)
-			w.Write([]byte(err.Error()))
+			reply.ErrMsg = err.Error()
 		} else {
-			reply.Msg = "请求成功"
-			ret, err := json.Marshal(reply)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
-				fmt.Println("json marshal fail.")
-				return
-			}
-			w.WriteHeader(http.StatusOK)
-			fmt.Println(string(ret))
-			w.Write(ret)
+			reply.Result = common.ResultSuccess
+			reply.Data = data
 		}
-		fmt.Println("-----request end-----")
+		c.JSON(http.StatusOK, reply)
 	}()
-	info, err := checkReplyPost(w, r)
+	err = checkReplyPost(req)
 	if err != nil {
 		return
 	}
-	//取出token
-	token, err := getTokenFromHeader(r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	userId := auth.GetSessionInfo(c).UserId
+	//handler
+	if err = post.DealReplyPost(int(userId), req.PostId, req.Content); err != nil {
 		return
 	}
-	//根据token获取userid，根据userid操作数据库
-	userId, err := verify.VerifyToken(token)
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-	err = post.DealReplyPost(userId, info.PostId, info.Content)
-	if err != nil {
-		return
-	}
+	return
 }
