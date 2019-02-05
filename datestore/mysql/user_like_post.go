@@ -105,8 +105,8 @@ func CancelLikeRecord(tx *gorm.DB, userId, postId int64) (err error) {
 
 func QueryUserLikeStatus(userId, postId int64) (status int, err error) {
 	where := UserLikePost{
-		UserID:userId,
-		PostID:postId,
+		UserID: userId,
+		PostID: postId,
 	}
 	if err = db.Where(&where).First(&where).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {

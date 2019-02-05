@@ -11,7 +11,7 @@ import (
 )
 
 type ReplyPostParams struct {
-	PostId  int `json:"post_id"`
+	PostId  int    `json:"post_id"`
 	Content string `json:"content"`
 }
 
@@ -32,7 +32,7 @@ func ReplyPost(c echo.Context) (err error) {
 	}
 	data := new(struct{})
 	reply := common.StdReply{
-		Result:common.ResultFail,
+		Result: common.ResultFail,
 	}
 	defer func() {
 		if err != nil {

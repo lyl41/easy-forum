@@ -20,7 +20,7 @@ type SendSmsReply struct {
 }
 
 func checkSendSms(info *SendSmsParams) (err error) {
-	if info.Phone == ""{
+	if info.Phone == "" {
 		err = errors.New("body中参数非法")
 		return
 	}
@@ -36,7 +36,7 @@ func SendSms(c echo.Context) (err error) {
 	}
 	data := new(SendSmsReply)
 	reply := common.StdReply{
-		Result:common.ResultFail,
+		Result: common.ResultFail,
 	}
 	defer func() {
 		if err != nil {

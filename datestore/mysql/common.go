@@ -21,6 +21,6 @@ func init() {
 	db.Debug()
 }
 
-func GetDB() (*gorm.DB) {
+func GetDB() *gorm.DB {
 	return db
 }

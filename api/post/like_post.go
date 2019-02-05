@@ -11,11 +11,11 @@ import (
 )
 
 type LikePostParams struct {
-	PostId  int `json:"post_id"`
+	PostId int `json:"post_id"`
 }
 
 func checkLikePost(info *LikePostParams) (err error) {
-	if info.PostId <= 0{
+	if info.PostId <= 0 {
 		err = errors.New("body中参数非法")
 		return
 	}
@@ -31,7 +31,7 @@ func LikePost(c echo.Context) (err error) {
 	}
 	data := new(struct{})
 	reply := common.StdReply{
-		Result:common.ResultFail,
+		Result: common.ResultFail,
 	}
 	defer func() {
 		if err != nil {
@@ -53,4 +53,3 @@ func LikePost(c echo.Context) (err error) {
 	}
 	return
 }
-

@@ -28,12 +28,12 @@ func checkLoginByPhone(info *loginByPhone) (err error) {
 func LoginByPhone(c echo.Context) (err error) {
 	req := new(loginByPhone)
 	err = c.Bind(req)
-	if err != nil{
+	if err != nil {
 		return
 	}
 	data := new(loginReply)
 	reply := common.StdReply{
-		Result:common.ResultFail,
+		Result: common.ResultFail,
 	}
 	defer func() {
 		if err != nil {

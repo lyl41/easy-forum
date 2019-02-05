@@ -27,7 +27,7 @@ type QueryLikeStatusReply struct {
 }
 
 //点赞帖子
-func QueryLikeStatus(c echo.Context) (err error){
+func QueryLikeStatus(c echo.Context) (err error) {
 	req := new(QueryLikeStatusParams)
 	err = c.Bind(req)
 	if err != nil {
@@ -36,7 +36,7 @@ func QueryLikeStatus(c echo.Context) (err error){
 	}
 	data := new(QueryLikeStatusReply)
 	reply := common.StdReply{
-		Result:common.ResultFail,
+		Result: common.ResultFail,
 	}
 	defer func() {
 		if err != nil {

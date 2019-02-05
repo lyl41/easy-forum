@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"easy-forum/common/util"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"time"
@@ -47,7 +48,7 @@ func FindPostByID(tx *gorm.DB, postId int64) (data *Post, err error) {
 	}
 	data = new(Post)
 	//加行锁
-	if err = tx.Set("gorm:query_option", " FOR UPDATE ").Where(where).First(data).Error; err != nil {
+	if err = util.QueryForUpdate(tx).Where(where).First(data).Error; err != nil {
 		if err == gorm.ErrRecordNotFound { //处理了未找到的情况，err = nil, 但是data.ID==0
 			err = nil
 		}
@@ -59,9 +60,9 @@ func FindPostByID(tx *gorm.DB, postId int64) (data *Post, err error) {
 
 func AddNewPostRecord(userId int64, title, content string) (err error) {
 	data := &Post{
-		UserID: int64(userId),
-		Title:  title,
-		Detail: content,
+		UserID:     int64(userId),
+		Title:      title,
+		Detail:     content,
 		ReplyCount: 1,
 	}
 	if err = db.Create(data).Error; err != nil {
@@ -70,7 +71,7 @@ func AddNewPostRecord(userId int64, title, content string) (err error) {
 	return
 }
 
-func UpdatePostReplyCount(db *gorm.DB, postId, floor int64) (err error){
+func UpdatePostReplyCount(db *gorm.DB, postId, floor int64) (err error) {
 	data := &Post{
 		ReplyCount: int64(floor),
 	}
@@ -81,7 +82,7 @@ func UpdatePostReplyCount(db *gorm.DB, postId, floor int64) (err error){
 	return
 }
 
-func UpdatePostLikeCount(db *gorm.DB, postId, like int64) (err error){
+func UpdatePostLikeCount(db *gorm.DB, postId, like int64) (err error) {
 	data := &Post{
 		Like: int64(like),
 	}

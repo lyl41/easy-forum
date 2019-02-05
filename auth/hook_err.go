@@ -5,10 +5,12 @@ import (
 	"github.com/labstack/echo"
 	"net/http"
 )
+
 type SendPostParams struct {
 	Title   string `json:"title"`
 	Content string `json:"content"`
 }
+
 func HookErr(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		err := next(ctx)
@@ -17,8 +19,8 @@ func HookErr(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		if err != nil {
 			reply := common.StdReply{
-				Result:common.ResultFail,
-				ErrMsg:err.Error(),
+				Result: common.ResultFail,
+				ErrMsg: err.Error(),
 			}
 			ctx.JSON(http.StatusOK, reply)
 		}

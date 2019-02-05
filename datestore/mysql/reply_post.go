@@ -25,18 +25,17 @@ func (ReplyPost) TableName() string {
 	return "reply_post"
 }
 
-
 func CreateReplyPostRecord(db *gorm.DB, postId, floor, postUserId, replyUserId int64, content string) (err error) {
 	where := &ReplyPost{ //postid和floor应该是联合唯一索引 TODO
-		PostID:postId,
-		Floor:floor,
+		PostID: postId,
+		Floor:  floor,
 	}
 	data := &ReplyPost{
-		PostID:int64(postId),
-		To:int64(postUserId),
-		UserID:int64(replyUserId),
-		Floor: int64(floor),
-		Detail:content,
+		PostID: int64(postId),
+		To:     int64(postUserId),
+		UserID: int64(replyUserId),
+		Floor:  int64(floor),
+		Detail: content,
 	}
 	err = db.Set("gorm:query_option", " FOR UPDATE ").Where(where).First(data).Error
 	if err != nil && err != gorm.ErrRecordNotFound {

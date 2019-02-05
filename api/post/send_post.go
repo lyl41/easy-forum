@@ -32,7 +32,7 @@ func SendPost(c echo.Context) (err error) {
 	}
 	data := new(struct{})
 	reply := common.StdReply{
-		Result:common.ResultFail,
+		Result: common.ResultFail,
 	}
 	defer func() {
 		if err != nil {
