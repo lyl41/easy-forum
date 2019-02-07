@@ -4,9 +4,10 @@ import (
 	"easy-forum/common/util"
 	"easy-forum/datestore/mysql"
 	"fmt"
+	"time"
+
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
-	"time"
 )
 
 func DealSign(userId int64) (err error) {
@@ -101,7 +102,7 @@ func DealGetSignStatus(userId int64) (SignStatus bool, continueDays int64, err e
 		UserID:    userId,
 		DateMonth: util.GetFirstDateOfMonth(d), //每月第一天表示这个月份
 	}
-	if err = mysql.GetDB().Select("mask, continue_sign_month").Where(where).First(data).Error; err != nil {
+	if err = mysql.GetDB().Select("mask, continue_sign_month").Where(where).First(data).Error; err != nil && err != gorm.ErrRecordNotFound {
 		err = errors.Wrap(err, "查询签到信息失败")
 		return
 	}

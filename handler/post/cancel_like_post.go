@@ -2,6 +2,7 @@ package post
 
 import (
 	"easy-forum/datestore/mysql"
+
 	"github.com/pkg/errors"
 )
 

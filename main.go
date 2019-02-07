@@ -5,6 +5,7 @@ import (
 	"easy-forum/api/post"
 	"easy-forum/api/sign"
 	"easy-forum/auth"
+
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -37,5 +38,5 @@ func main() {
 	e.POST("/sign", sign.Sign, auth.VerifyAuth)
 	e.POST("/get-sign-status", sign.GetSignStatus, auth.VerifyAuth)
 
-	e.Start(":9001")
+	e.Start("0.0.0.0:9001")
 }

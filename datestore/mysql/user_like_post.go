@@ -1,9 +1,10 @@
 package mysql
 
 import (
+	"time"
+
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
-	"time"
 )
 
 //通过如下命令自动生成:

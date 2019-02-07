@@ -4,8 +4,9 @@ import (
 	"easy-forum/auth"
 	"easy-forum/common"
 	"easy-forum/handler/sign"
-	"github.com/labstack/echo"
 	"net/http"
+
+	"github.com/labstack/echo"
 )
 
 //用户签到接口

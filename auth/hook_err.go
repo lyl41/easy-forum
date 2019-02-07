@@ -2,8 +2,9 @@ package auth
 
 import (
 	"easy-forum/common"
-	"github.com/labstack/echo"
 	"net/http"
+
+	"github.com/labstack/echo"
 )
 
 type SendPostParams struct {

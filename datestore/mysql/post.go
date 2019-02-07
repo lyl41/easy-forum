@@ -2,9 +2,10 @@ package mysql
 
 import (
 	"easy-forum/common/util"
+	"time"
+
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
-	"time"
 )
 
 type Post struct {

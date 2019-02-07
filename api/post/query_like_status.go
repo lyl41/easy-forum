@@ -5,9 +5,10 @@ import (
 	"easy-forum/common"
 	"easy-forum/handler/post"
 	"fmt"
+	"net/http"
+
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
 type QueryLikeStatusParams struct {

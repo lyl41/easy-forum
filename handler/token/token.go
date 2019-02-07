@@ -5,8 +5,9 @@ import (
 	"easy-forum/common/util"
 	"easy-forum/datestore/redis"
 	"encoding/hex"
-	"github.com/pkg/errors"
 	"strconv"
+
+	"github.com/pkg/errors"
 )
 
 func genTokenByUserID(userId int) (token string, err error) {

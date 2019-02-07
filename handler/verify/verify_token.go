@@ -2,6 +2,7 @@ package verify
 
 import (
 	"easy-forum/datestore/redis"
+
 	"github.com/pkg/errors"
 )
 

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"easy-forum/datestore/redis"
+
 	"github.com/labstack/echo"
 )
 

@@ -2,6 +2,7 @@ package redis
 
 import (
 	"encoding/json"
+
 	"github.com/garyburd/redigo/redis"
 	"github.com/pkg/errors"
 )
@@ -22,6 +23,7 @@ func SetTokenValue(token string, sess *SessionInfo) (err error) {
 	}
 	key := keyPreFix + token
 	conn := pool.Get()
+	defer conn.Close()
 	defer conn.Close()
 	if _, err = conn.Do("setex", key, tokenTimeout, string(str)); err != nil {
 		err = errors.Wrap(err, "redis token setex fail.")

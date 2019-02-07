@@ -5,6 +5,7 @@ import (
 	"easy-forum/datestore/mysql"
 	"easy-forum/datestore/redis"
 	"easy-forum/handler/token"
+
 	"github.com/pkg/errors"
 )
 

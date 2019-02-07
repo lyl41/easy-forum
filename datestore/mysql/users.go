@@ -1,8 +1,9 @@
 package mysql
 
 import (
-	"github.com/pkg/errors"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 //通过如下命令自动生成:

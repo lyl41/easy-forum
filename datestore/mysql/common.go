@@ -2,9 +2,10 @@ package mysql
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"os"
 )
 
 var db *gorm.DB

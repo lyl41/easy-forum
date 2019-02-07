@@ -3,9 +3,10 @@ package login
 import (
 	"easy-forum/common"
 	"easy-forum/handler/login"
+	"net/http"
+
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
 type loginByPhone struct {

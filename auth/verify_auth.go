@@ -2,6 +2,7 @@ package auth
 
 import (
 	"easy-forum/handler/verify"
+
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )

@@ -6,7 +6,7 @@ var pool *redis.Pool
 
 func init() {
 	pool = &redis.Pool{
-		MaxActive: 5,
+		MaxActive: 15,
 		MaxIdle:   5,
 		Dial: func() (redis.Conn, error) {
 			return redis.Dial(
@@ -16,6 +16,7 @@ func init() {
 		},
 	}
 	conn := pool.Get()
+	defer conn.Close()
 	if _, err := conn.Do("ping"); err != nil {
 		panic(err)
 	}

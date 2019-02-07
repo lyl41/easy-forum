@@ -4,9 +4,10 @@ import (
 	"easy-forum/common"
 	"easy-forum/handler/login"
 	"fmt"
+	"net/http"
+
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
 type SendSmsParams struct {
