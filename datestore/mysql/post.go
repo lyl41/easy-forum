@@ -37,8 +37,8 @@ func FindPostByUserIdAndTitle(tx *gorm.DB, userId int64, title string) (data *Po
 		if err == gorm.ErrRecordNotFound { //处理了未找到的情况，err = nil
 			err = nil
 		}
-		return
 		err = errors.Wrap(err, "数据库查找错误")
+		return
 	}
 	return
 }
@@ -53,8 +53,8 @@ func FindPostByID(tx *gorm.DB, postId int64) (data *Post, err error) {
 		if err == gorm.ErrRecordNotFound { //处理了未找到的情况，err = nil, 但是data.ID==0
 			err = nil
 		}
-		return
 		err = errors.Wrap(err, "数据库查找错误")
+		return
 	}
 	return
 }
@@ -67,6 +67,7 @@ func AddNewPostRecord(userId int64, title, content string) (err error) {
 		ReplyCount: 1,
 	}
 	if err = db.Create(data).Error; err != nil {
+		err = errors.Wrap(err, "创建帖子记录失败")
 		return
 	}
 	return
