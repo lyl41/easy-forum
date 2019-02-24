@@ -11,15 +11,6 @@ import (
 )
 
 func main() {
-	//c := common{}
-	//http.HandleFunc("/post", c.SendPost)
-	//http.HandleFunc("/reply", c.ReplyPost)
-	//http.HandleFunc("/send-sms", c.SendSms)
-	//http.HandleFunc("/login-by-phone", c.LoginByPhone)
-	//http.HandleFunc("/like-post", c.LikePost)
-	//http.HandleFunc("/cancel-like-post", c.CancelLikePost)
-	//http.HandleFunc("/query-like-status", c.QueryLikeStatus)
-	//log.Fatal(http.ListenAndServe(":9001", nil))
 
 	e := echo.New()
 	e.Use(middleware.Logger())
@@ -38,5 +29,5 @@ func main() {
 	e.POST("/sign", sign.Sign, auth.VerifyAuth)
 	e.POST("/get-sign-status", sign.GetSignStatus, auth.VerifyAuth)
 
-	e.Start("0.0.0.0:9001")
+	e.Start("0.0.0.0:9001") //TODO
 }
