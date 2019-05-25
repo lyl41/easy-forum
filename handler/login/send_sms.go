@@ -1,10 +1,18 @@
 package login
 
-import "easy-forum/datestore/redis"
+import (
+	"easy-forum/datestore/redis"
+
+	"github.com/pkg/errors"
+)
 
 func DealSendSms(phone, picCode string) (smsCode, picCodeReply string, err error) {
 	//TODO
 	smsCode = "1111"
-	redis.SetSmsCode(phone, smsCode)
+	err = redis.SetSmsCode(phone, smsCode)
+	if err != nil {
+		err = errors.Wrap(err, "redis SetSmsCode failed")
+		return
+	}
 	return
 }
