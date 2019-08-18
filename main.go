@@ -1,10 +1,10 @@
 package main
 
 import (
-	"easy-forum/api/login"
-	"easy-forum/api/post"
-	"easy-forum/api/sign"
-	"easy-forum/auth"
+	"easy-forum/app/api/login"
+	"easy-forum/app/api/post"
+	"easy-forum/app/api/sign"
+	"easy-forum/app/auth"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"

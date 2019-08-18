@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo"
 )
 
 type (
@@ -20,7 +20,7 @@ type (
 
 		// Gzip compression level.
 		// Optional. Default value -1.
-		Level int `yaml:"level"`
+		Level int `json:"level"`
 	}
 
 	gzipResponseWriter struct {
@@ -67,7 +67,7 @@ func GzipWithConfig(config GzipConfig) echo.MiddlewareFunc {
 			res := c.Response()
 			res.Header().Add(echo.HeaderVary, echo.HeaderAcceptEncoding)
 			if strings.Contains(c.Request().Header.Get(echo.HeaderAcceptEncoding), gzipScheme) {
-				res.Header().Set(echo.HeaderContentEncoding, gzipScheme) // Issue #806
+				res.Header().Add(echo.HeaderContentEncoding, gzipScheme) // Issue #806
 				rw := res.Writer
 				w, err := gzip.NewWriterLevel(rw, config.Level)
 				if err != nil {
@@ -98,7 +98,6 @@ func (w *gzipResponseWriter) WriteHeader(code int) {
 	if code == http.StatusNoContent { // Issue #489
 		w.ResponseWriter.Header().Del(echo.HeaderContentEncoding)
 	}
-	w.Header().Del(echo.HeaderContentLength) // Issue #444
 	w.ResponseWriter.WriteHeader(code)
 }
 
@@ -115,4 +114,8 @@ func (w *gzipResponseWriter) Flush() {
 
 func (w *gzipResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return w.ResponseWriter.(http.Hijacker).Hijack()
+}
+
+func (w *gzipResponseWriter) CloseNotify() <-chan bool {
+	return w.ResponseWriter.(http.CloseNotifier).CloseNotify()
 }

@@ -11,13 +11,11 @@ type (
 	// by an HTTP handler to construct an HTTP response.
 	// See: https://golang.org/pkg/net/http/#ResponseWriter
 	Response struct {
-		echo        *Echo
-		beforeFuncs []func()
-		afterFuncs  []func()
-		Writer      http.ResponseWriter
-		Status      int
-		Size        int64
-		Committed   bool
+		Writer    http.ResponseWriter
+		Status    int
+		Size      int64
+		Committed bool
+		echo      *Echo
 	}
 )
 
@@ -36,17 +34,6 @@ func (r *Response) Header() http.Header {
 	return r.Writer.Header()
 }
 
-// Before registers a function which is called just before the response is written.
-func (r *Response) Before(fn func()) {
-	r.beforeFuncs = append(r.beforeFuncs, fn)
-}
-
-// After registers a function which is called just after the response is written.
-// If the `Content-Length` is unknown, none of the after function is executed.
-func (r *Response) After(fn func()) {
-	r.afterFuncs = append(r.afterFuncs, fn)
-}
-
 // WriteHeader sends an HTTP response header with status code. If WriteHeader is
 // not called explicitly, the first call to Write will trigger an implicit
 // WriteHeader(http.StatusOK). Thus explicit calls to WriteHeader are mainly
@@ -55,9 +42,6 @@ func (r *Response) WriteHeader(code int) {
 	if r.Committed {
 		r.echo.Logger.Warn("response already committed")
 		return
-	}
-	for _, fn := range r.beforeFuncs {
-		fn()
 	}
 	r.Status = code
 	r.Writer.WriteHeader(code)
@@ -71,9 +55,6 @@ func (r *Response) Write(b []byte) (n int, err error) {
 	}
 	n, err = r.Writer.Write(b)
 	r.Size += int64(n)
-	for _, fn := range r.afterFuncs {
-		fn()
-	}
 	return
 }
 
@@ -91,9 +72,16 @@ func (r *Response) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return r.Writer.(http.Hijacker).Hijack()
 }
 
+// CloseNotify implements the http.CloseNotifier interface to allow detecting
+// when the underlying connection has gone away.
+// This mechanism can be used to cancel long operations on the server if the
+// client has disconnected before the response is ready.
+// See [http.CloseNotifier](https://golang.org/pkg/net/http/#CloseNotifier)
+func (r *Response) CloseNotify() <-chan bool {
+	return r.Writer.(http.CloseNotifier).CloseNotify()
+}
+
 func (r *Response) reset(w http.ResponseWriter) {
-	r.beforeFuncs = nil
-	r.afterFuncs = nil
 	r.Writer = w
 	r.Size = 0
 	r.Status = http.StatusOK

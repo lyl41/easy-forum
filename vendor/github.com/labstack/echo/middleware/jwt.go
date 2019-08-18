@@ -1,13 +1,14 @@
 package middleware
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo"
 )
 
 type (
@@ -15,16 +16,6 @@ type (
 	JWTConfig struct {
 		// Skipper defines a function to skip middleware.
 		Skipper Skipper
-
-		// BeforeFunc defines a function which is executed just before the middleware.
-		BeforeFunc BeforeFunc
-
-		// SuccessHandler defines a function which is executed for a valid token.
-		SuccessHandler JWTSuccessHandler
-
-		// ErrorHandler defines a function which is executed for an invalid token.
-		// It may be used to define a custom JWT error.
-		ErrorHandler JWTErrorHandler
 
 		// Signing key to validate token.
 		// Required.
@@ -58,23 +49,12 @@ type (
 		keyFunc jwt.Keyfunc
 	}
 
-	// JWTSuccessHandler defines a function which is executed for a valid token.
-	JWTSuccessHandler func(echo.Context)
-
-	// JWTErrorHandler defines a function which is executed for an invalid token.
-	JWTErrorHandler func(error) error
-
 	jwtExtractor func(echo.Context) (string, error)
 )
 
 // Algorithms
 const (
 	AlgorithmHS256 = "HS256"
-)
-
-// Errors
-var (
-	ErrJWTMissing = echo.NewHTTPError(http.StatusBadRequest, "missing or malformed jwt")
 )
 
 var (
@@ -131,7 +111,7 @@ func JWTWithConfig(config JWTConfig) echo.MiddlewareFunc {
 	config.keyFunc = func(t *jwt.Token) (interface{}, error) {
 		// Check the signing method
 		if t.Method.Alg() != config.SigningMethod {
-			return nil, fmt.Errorf("unexpected jwt signing method=%v", t.Header["alg"])
+			return nil, fmt.Errorf("Unexpected jwt signing method=%v", t.Header["alg"])
 		}
 		return config.SigningKey, nil
 	}
@@ -152,42 +132,24 @@ func JWTWithConfig(config JWTConfig) echo.MiddlewareFunc {
 				return next(c)
 			}
 
-			if config.BeforeFunc != nil {
-				config.BeforeFunc(c)
-			}
-
 			auth, err := extractor(c)
 			if err != nil {
-				if config.ErrorHandler != nil {
-					return config.ErrorHandler(err)
-				}
-				return err
+				return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 			}
 			token := new(jwt.Token)
 			// Issue #647, #656
 			if _, ok := config.Claims.(jwt.MapClaims); ok {
 				token, err = jwt.Parse(auth, config.keyFunc)
 			} else {
-				t := reflect.ValueOf(config.Claims).Type().Elem()
-				claims := reflect.New(t).Interface().(jwt.Claims)
+				claims := reflect.ValueOf(config.Claims).Interface().(jwt.Claims)
 				token, err = jwt.ParseWithClaims(auth, claims, config.keyFunc)
 			}
 			if err == nil && token.Valid {
 				// Store user information from token into context.
 				c.Set(config.ContextKey, token)
-				if config.SuccessHandler != nil {
-					config.SuccessHandler(c)
-				}
 				return next(c)
 			}
-			if config.ErrorHandler != nil {
-				return config.ErrorHandler(err)
-			}
-			return &echo.HTTPError{
-				Code:     http.StatusUnauthorized,
-				Message:  "invalid or expired jwt",
-				Internal: err,
-			}
+			return echo.ErrUnauthorized
 		}
 	}
 }
@@ -200,7 +162,7 @@ func jwtFromHeader(header string, authScheme string) jwtExtractor {
 		if len(auth) > l+1 && auth[:l] == authScheme {
 			return auth[l+1:], nil
 		}
-		return "", ErrJWTMissing
+		return "", errors.New("Missing or invalid jwt in the request header")
 	}
 }
 
@@ -209,7 +171,7 @@ func jwtFromQuery(param string) jwtExtractor {
 	return func(c echo.Context) (string, error) {
 		token := c.QueryParam(param)
 		if token == "" {
-			return "", ErrJWTMissing
+			return "", errors.New("Missing jwt in the query string")
 		}
 		return token, nil
 	}
@@ -220,7 +182,7 @@ func jwtFromCookie(name string) jwtExtractor {
 	return func(c echo.Context) (string, error) {
 		cookie, err := c.Cookie(name)
 		if err != nil {
-			return "", ErrJWTMissing
+			return "", errors.New("Missing jwt in the cookie")
 		}
 		return cookie.Value, nil
 	}

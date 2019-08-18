@@ -204,15 +204,7 @@ type (
 const (
 	defaultMemory = 32 << 20 // 32 MB
 	indexPage     = "index.html"
-	defaultIndent = "  "
 )
-
-func (c *context) writeContentType(value string) {
-	header := c.Response().Header()
-	if header.Get(HeaderContentType) == "" {
-		header.Set(HeaderContentType, value)
-	}
-}
 
 func (c *context) Request() *http.Request {
 	return c.request
@@ -257,13 +249,14 @@ func (c *context) Scheme() string {
 }
 
 func (c *context) RealIP() string {
+	ra := c.request.RemoteAddr
 	if ip := c.request.Header.Get(HeaderXForwardedFor); ip != "" {
-		return strings.Split(ip, ", ")[0]
+		ra = strings.Split(ip, ", ")[0]
+	} else if ip := c.request.Header.Get(HeaderXRealIP); ip != "" {
+		ra = ip
+	} else {
+		ra, _, _ = net.SplitHostPort(ra)
 	}
-	if ip := c.request.Header.Get(HeaderXRealIP); ip != "" {
-		return ip
-	}
-	ra, _, _ := net.SplitHostPort(c.request.RemoteAddr)
 	return ra
 }
 
@@ -280,6 +273,13 @@ func (c *context) Param(name string) string {
 		if i < len(c.pvalues) {
 			if n == name {
 				return c.pvalues[i]
+			}
+
+			// Param name with aliases
+			for _, p := range strings.Split(n, ",") {
+				if p == name {
+					return c.pvalues[i]
+				}
 			}
 		}
 	}
@@ -404,46 +404,24 @@ func (c *context) String(code int, s string) (err error) {
 	return c.Blob(code, MIMETextPlainCharsetUTF8, []byte(s))
 }
 
-func (c *context) jsonPBlob(code int, callback string, i interface{}) (err error) {
-	enc := json.NewEncoder(c.response)
+func (c *context) JSON(code int, i interface{}) (err error) {
 	_, pretty := c.QueryParams()["pretty"]
 	if c.echo.Debug || pretty {
-		enc.SetIndent("", "  ")
+		return c.JSONPretty(code, i, "  ")
 	}
-	c.writeContentType(MIMEApplicationJavaScriptCharsetUTF8)
-	c.response.WriteHeader(code)
-	if _, err = c.response.Write([]byte(callback + "(")); err != nil {
+	b, err := json.Marshal(i)
+	if err != nil {
 		return
 	}
-	if err = enc.Encode(i); err != nil {
-		return
-	}
-	if _, err = c.response.Write([]byte(");")); err != nil {
-		return
-	}
-	return
-}
-
-func (c *context) json(code int, i interface{}, indent string) error {
-	enc := json.NewEncoder(c.response)
-	if indent != "" {
-		enc.SetIndent("", indent)
-	}
-	c.writeContentType(MIMEApplicationJSONCharsetUTF8)
-	c.response.WriteHeader(code)
-	return enc.Encode(i)
-}
-
-func (c *context) JSON(code int, i interface{}) (err error) {
-	indent := ""
-	if _, pretty := c.QueryParams()["pretty"]; c.echo.Debug || pretty {
-		indent = defaultIndent
-	}
-	return c.json(code, i, indent)
+	return c.JSONBlob(code, b)
 }
 
 func (c *context) JSONPretty(code int, i interface{}, indent string) (err error) {
-	return c.json(code, i, indent)
+	b, err := json.MarshalIndent(i, "", indent)
+	if err != nil {
+		return
+	}
+	return c.JSONBlob(code, b)
 }
 
 func (c *context) JSONBlob(code int, b []byte) (err error) {
@@ -451,11 +429,15 @@ func (c *context) JSONBlob(code int, b []byte) (err error) {
 }
 
 func (c *context) JSONP(code int, callback string, i interface{}) (err error) {
-	return c.jsonPBlob(code, callback, i)
+	b, err := json.Marshal(i)
+	if err != nil {
+		return
+	}
+	return c.JSONPBlob(code, callback, b)
 }
 
 func (c *context) JSONPBlob(code int, callback string, b []byte) (err error) {
-	c.writeContentType(MIMEApplicationJavaScriptCharsetUTF8)
+	c.response.Header().Set(HeaderContentType, MIMEApplicationJavaScriptCharsetUTF8)
 	c.response.WriteHeader(code)
 	if _, err = c.response.Write([]byte(callback + "(")); err != nil {
 		return
@@ -467,33 +449,28 @@ func (c *context) JSONPBlob(code int, callback string, b []byte) (err error) {
 	return
 }
 
-func (c *context) xml(code int, i interface{}, indent string) (err error) {
-	c.writeContentType(MIMEApplicationXMLCharsetUTF8)
-	c.response.WriteHeader(code)
-	enc := xml.NewEncoder(c.response)
-	if indent != "" {
-		enc.Indent("", indent)
+func (c *context) XML(code int, i interface{}) (err error) {
+	_, pretty := c.QueryParams()["pretty"]
+	if c.echo.Debug || pretty {
+		return c.XMLPretty(code, i, "  ")
 	}
-	if _, err = c.response.Write([]byte(xml.Header)); err != nil {
+	b, err := xml.Marshal(i)
+	if err != nil {
 		return
 	}
-	return enc.Encode(i)
-}
-
-func (c *context) XML(code int, i interface{}) (err error) {
-	indent := ""
-	if _, pretty := c.QueryParams()["pretty"]; c.echo.Debug || pretty {
-		indent = defaultIndent
-	}
-	return c.xml(code, i, indent)
+	return c.XMLBlob(code, b)
 }
 
 func (c *context) XMLPretty(code int, i interface{}, indent string) (err error) {
-	return c.xml(code, i, indent)
+	b, err := xml.MarshalIndent(i, "", indent)
+	if err != nil {
+		return
+	}
+	return c.XMLBlob(code, b)
 }
 
 func (c *context) XMLBlob(code int, b []byte) (err error) {
-	c.writeContentType(MIMEApplicationXMLCharsetUTF8)
+	c.response.Header().Set(HeaderContentType, MIMEApplicationXMLCharsetUTF8)
 	c.response.WriteHeader(code)
 	if _, err = c.response.Write([]byte(xml.Header)); err != nil {
 		return
@@ -503,14 +480,14 @@ func (c *context) XMLBlob(code int, b []byte) (err error) {
 }
 
 func (c *context) Blob(code int, contentType string, b []byte) (err error) {
-	c.writeContentType(contentType)
+	c.response.Header().Set(HeaderContentType, contentType)
 	c.response.WriteHeader(code)
 	_, err = c.response.Write(b)
 	return
 }
 
 func (c *context) Stream(code int, contentType string, r io.Reader) (err error) {
-	c.writeContentType(contentType)
+	c.response.Header().Set(HeaderContentType, contentType)
 	c.response.WriteHeader(code)
 	_, err = io.Copy(c.response, r)
 	return
@@ -519,7 +496,7 @@ func (c *context) Stream(code int, contentType string, r io.Reader) (err error) 
 func (c *context) File(file string) (err error) {
 	f, err := os.Open(file)
 	if err != nil {
-		return NotFoundHandler(c)
+		return ErrNotFound
 	}
 	defer f.Close()
 
@@ -528,7 +505,7 @@ func (c *context) File(file string) (err error) {
 		file = filepath.Join(file, indexPage)
 		f, err = os.Open(file)
 		if err != nil {
-			return NotFoundHandler(c)
+			return ErrNotFound
 		}
 		defer f.Close()
 		if fi, err = f.Stat(); err != nil {
@@ -539,17 +516,18 @@ func (c *context) File(file string) (err error) {
 	return
 }
 
-func (c *context) Attachment(file, name string) error {
+func (c *context) Attachment(file, name string) (err error) {
 	return c.contentDisposition(file, name, "attachment")
 }
 
-func (c *context) Inline(file, name string) error {
+func (c *context) Inline(file, name string) (err error) {
 	return c.contentDisposition(file, name, "inline")
 }
 
-func (c *context) contentDisposition(file, name, dispositionType string) error {
-	c.response.Header().Set(HeaderContentDisposition, fmt.Sprintf("%s; filename=%q", dispositionType, name))
-	return c.File(file)
+func (c *context) contentDisposition(file, name, dispositionType string) (err error) {
+	c.response.Header().Set(HeaderContentDisposition, fmt.Sprintf("%s; filename=%s", dispositionType, name))
+	c.File(file)
+	return
 }
 
 func (c *context) NoContent(code int) error {
@@ -597,4 +575,3 @@ func (c *context) Reset(r *http.Request, w http.ResponseWriter) {
 	// NOTE: Don't reset because it has to have length c.echo.maxParam at all times
 	// c.pvalues = nil
 }
-

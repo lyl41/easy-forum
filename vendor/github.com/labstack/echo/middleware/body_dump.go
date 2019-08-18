@@ -3,12 +3,13 @@ package middleware
 import (
 	"bufio"
 	"bytes"
-	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"io"
+
+	"github.com/labstack/echo"
 )
 
 type (
@@ -32,7 +33,7 @@ type (
 )
 
 var (
-	// DefaultBodyDumpConfig is the default BodyDump middleware config.
+	// DefaultBodyDumpConfig is the default Gzip middleware config.
 	DefaultBodyDumpConfig = BodyDumpConfig{
 		Skipper: DefaultSkipper,
 	}
@@ -53,7 +54,7 @@ func BodyDump(handler BodyDumpHandler) echo.MiddlewareFunc {
 func BodyDumpWithConfig(config BodyDumpConfig) echo.MiddlewareFunc {
 	// Defaults
 	if config.Handler == nil {
-		panic("echo: body-dump middleware requires a handler function")
+		panic("body-dump middleware requires a handler function")
 	}
 	if config.Skipper == nil {
 		config.Skipper = DefaultBodyDumpConfig.Skipper
@@ -104,4 +105,8 @@ func (w *bodyDumpResponseWriter) Flush() {
 
 func (w *bodyDumpResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return w.ResponseWriter.(http.Hijacker).Hijack()
+}
+
+func (w *bodyDumpResponseWriter) CloseNotify() <-chan bool {
+	return w.ResponseWriter.(http.CloseNotifier).CloseNotify()
 }

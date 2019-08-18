@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo"
 )
 
 type (
@@ -12,7 +12,7 @@ type (
 
 		// Status code to be used when redirecting the request.
 		// Optional, but when provided the request is redirected using this code.
-		RedirectCode int `yaml:"redirect_code"`
+		RedirectCode int `json:"redirect_code"`
 	}
 )
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 fmt:
-	goimports -l -w .
+	goimports -l -w ./app/
 
 dev: fmt
 	go build -o output/bin/forum-MacOs .
