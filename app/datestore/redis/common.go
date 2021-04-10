@@ -11,7 +11,7 @@ func init() {
 		Dial: func() (redis.Conn, error) {
 			return redis.Dial(
 				"tcp",
-				"108.160.139.109:6379",           //TODO
+				"localhost:6379",           //TODO
 				redis.DialPassword("carton&*()"), //TODO
 			)
 		},
